@@ -1,11 +1,8 @@
-# examples
+# asr_v2_sauc_ws example
 
-Convention: **one subdirectory per API**.
+ASR V2 SAUC WebSocket streaming recognition:
 
-## Current examples
-
-- `asr_v2_sauc_ws/`: ASR V2 SAUC WebSocket streaming recognition
-  (open session -> send audio -> receive results -> close)
+open session -> send audio -> receive results -> close.
 
 ## Run
 
