@@ -13,7 +13,7 @@ const (
 	defaultTimeout = 30 * time.Second
 )
 
-// V2/V3 固定 App Key（官方文档约定，非用户凭证）。
+// V2/V3 fixed app keys (official constants, not user credentials).
 const (
 	AppKeyRealtime = "PlgvMymc7f3tQnJ6"
 	AppKeyPodcast  = "aGjiRDfUWi"
@@ -37,11 +37,11 @@ const (
 	ResourceTranslation = "volc.megatts.simt"
 )
 
-// Client 是豆包语音 SDK 入口。
+// Client is the SDK entry point.
 //
-// 首次迁移阶段仅实现 ASR V2 SAUC WS；其余服务在后续迁移补齐。
+// In this migration stage, only ASR V2 SAUC WS is implemented.
 type Client struct {
-	// ASR V2 大模型流式识别。
+	// ASR V2 streaming recognition.
 	ASR   *ASRServiceV2
 	ASRV2 *ASRServiceV2
 
@@ -51,8 +51,8 @@ type Client struct {
 type clientConfig struct {
 	appID       string
 	accessKey   string // X-Api-Access-Key
-	accessToken string // Bearer token（可回退到 X-Api-Access-Key）
-	appKey      string // X-Api-App-Key（默认 appID）
+	accessToken string // Bearer token (fallback to X-Api-Access-Key)
+	appKey      string // X-Api-App-Key (defaults to appID)
 	apiKey      string // x-api-key
 
 	cluster    string
@@ -65,10 +65,10 @@ type clientConfig struct {
 	userID     string
 }
 
-// Option 用于配置 Client。
+// Option configures Client.
 type Option func(*clientConfig)
 
-// NewClient 创建 SDK Client。
+// NewClient creates an SDK client.
 func NewClient(appID string, opts ...Option) *Client {
 	cfg := &clientConfig{
 		appID:   appID,
@@ -94,22 +94,22 @@ func NewClient(appID string, opts ...Option) *Client {
 	return c
 }
 
-// WithBearerToken 设置 Bearer Token。
-// V1 Header 格式是 `Authorization: Bearer;{token}`（官方历史约定）。
+// WithBearerToken sets Bearer token.
+// V1 header format is `Authorization: Bearer;{token}` (historical convention).
 func WithBearerToken(token string) Option {
 	return func(c *clientConfig) {
 		c.accessToken = token
 	}
 }
 
-// WithAPIKey 设置 x-api-key。
+// WithAPIKey sets x-api-key.
 func WithAPIKey(apiKey string) Option {
 	return func(c *clientConfig) {
 		c.apiKey = apiKey
 	}
 }
 
-// WithV2APIKey 设置 V2/V3 鉴权。
+// WithV2APIKey sets V2/V3 authentication.
 func WithV2APIKey(accessKey, appKey string) Option {
 	return func(c *clientConfig) {
 		c.accessKey = accessKey
@@ -117,54 +117,54 @@ func WithV2APIKey(accessKey, appKey string) Option {
 	}
 }
 
-// WithRealtimeAPIKey 兼容别名。
+// WithRealtimeAPIKey is a compatibility alias.
 func WithRealtimeAPIKey(accessKey, appKey string) Option {
 	return WithV2APIKey(accessKey, appKey)
 }
 
-// WithResourceID 设置默认 resource_id。
+// WithResourceID sets the default resource_id.
 func WithResourceID(resourceID string) Option {
 	return func(c *clientConfig) {
 		c.resourceID = resourceID
 	}
 }
 
-// WithCluster 设置 V1 cluster（保留以兼容历史用法）。
+// WithCluster sets the V1 cluster (kept for backward compatibility).
 func WithCluster(cluster string) Option {
 	return func(c *clientConfig) {
 		c.cluster = cluster
 	}
 }
 
-// WithBaseURL 设置 HTTP Base URL。
+// WithBaseURL sets the HTTP base URL.
 func WithBaseURL(url string) Option {
 	return func(c *clientConfig) {
 		c.baseURL = url
 	}
 }
 
-// WithWebSocketURL 设置 WebSocket Base URL。
+// WithWebSocketURL sets the WebSocket base URL.
 func WithWebSocketURL(url string) Option {
 	return func(c *clientConfig) {
 		c.wsURL = url
 	}
 }
 
-// WithHTTPClient 设置自定义 HTTP 客户端。
+// WithHTTPClient sets a custom HTTP client.
 func WithHTTPClient(client *http.Client) Option {
 	return func(c *clientConfig) {
 		c.httpClient = client
 	}
 }
 
-// WithTimeout 设置请求超时时间。
+// WithTimeout sets request timeout.
 func WithTimeout(timeout time.Duration) Option {
 	return func(c *clientConfig) {
 		c.timeout = timeout
 	}
 }
 
-// WithUserID 设置 user.uid。
+// WithUserID sets user.uid.
 func WithUserID(userID string) Option {
 	return func(c *clientConfig) {
 		c.userID = userID

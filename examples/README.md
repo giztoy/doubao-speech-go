@@ -17,6 +17,11 @@ go run ./examples/asr_v2_sauc_ws
 
 This example embeds a sample PCM fixture (`sample_zh_16k.pcm`).
 If `-audio` is not provided, it uses the embedded sample automatically.
+In embedded mode, `-sample-rate` is forced to `16000`.
+Because this sample is stored via Git LFS, run `git lfs pull` after cloning.
+
+This example currently supports `pcm` format only.
+If `-format` is set to another value, it exits with an error.
 
 Use Access Key auth instead:
 

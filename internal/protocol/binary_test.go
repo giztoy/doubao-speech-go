@@ -45,7 +45,7 @@ func TestBuildAudioOnlyFlags(t *testing.T) {
 }
 
 func TestParseServerFrameGzip(t *testing.T) {
-	original := []byte(`{"result":{"text":"你好"}}`)
+	original := []byte(`{"result":{"text":"hello"}}`)
 	var compressed bytes.Buffer
 	gz := gzip.NewWriter(&compressed)
 	if _, err := gz.Write(original); err != nil {

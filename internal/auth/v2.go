@@ -2,7 +2,7 @@ package auth
 
 import "net/http"
 
-// ApplyV2Headers 设置 V2/V3 请求鉴权头。
+// ApplyV2Headers sets V2/V3 authentication headers.
 func ApplyV2Headers(req *http.Request, creds Credentials, resourceID string) {
 	headers := BuildV2WSHeaders(creds, resourceID, "")
 	for key, values := range headers {
@@ -12,7 +12,7 @@ func ApplyV2Headers(req *http.Request, creds Credentials, resourceID string) {
 	}
 }
 
-// BuildV2WSHeaders 返回 V2/V3 WebSocket 鉴权头。
+// BuildV2WSHeaders builds V2/V3 WebSocket authentication headers.
 func BuildV2WSHeaders(creds Credentials, resourceID, connectID string) http.Header {
 	headers := http.Header{}
 

@@ -2,7 +2,7 @@ package auth
 
 import "net/http"
 
-// Credentials 是鉴权所需最小凭证集合。
+// Credentials is the minimal credential set for authentication.
 type Credentials struct {
 	AppID             string
 	AppKey            string
@@ -12,8 +12,8 @@ type Credentials struct {
 	DefaultResourceID string
 }
 
-// ApplyV1Headers 设置 V1 请求鉴权头。
-// 优先级：x-api-key > Authorization(Bearer;) > X-Api-Access-Key.
+// ApplyV1Headers sets V1 request authentication headers.
+// Priority: x-api-key > Authorization(Bearer;) > X-Api-Access-Key.
 func ApplyV1Headers(req *http.Request, creds Credentials) {
 	if creds.APIKey != "" {
 		req.Header.Set("x-api-key", creds.APIKey)
@@ -21,7 +21,7 @@ func ApplyV1Headers(req *http.Request, creds Credentials) {
 	}
 
 	if creds.AccessToken != "" {
-		// 官方历史格式：Bearer;{token}
+		// Historical official format: Bearer;{token}
 		req.Header.Set("Authorization", "Bearer;"+creds.AccessToken)
 		return
 	}

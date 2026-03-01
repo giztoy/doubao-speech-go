@@ -24,7 +24,7 @@ var supportedSampleRates = map[int]struct{}{
 	48000: {},
 }
 
-// NormalizeFormat 统一格式字符串。
+// NormalizeFormat normalizes the audio format string.
 func NormalizeFormat(format string) string {
 	return strings.ToLower(strings.TrimSpace(format))
 }

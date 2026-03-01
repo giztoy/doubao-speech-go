@@ -7,24 +7,24 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// WSConn 抽象 WebSocket 连接，方便单测注入。
+// WSConn abstracts a WebSocket connection for testing.
 type WSConn interface {
 	WriteMessage(messageType int, data []byte) error
 	ReadMessage() (messageType int, p []byte, err error)
 	Close() error
 }
 
-// WSDialer 抽象 WebSocket 建连器。
+// WSDialer abstracts WebSocket dialing.
 type WSDialer interface {
 	DialContext(ctx context.Context, url string, requestHeader http.Header) (WSConn, *http.Response, error)
 }
 
-// GorillaDialer 是默认 gorilla/websocket 实现。
+// GorillaDialer is the default gorilla/websocket implementation.
 type GorillaDialer struct {
 	dialer *websocket.Dialer
 }
 
-// NewGorillaDialer 创建 GorillaDialer。
+// NewGorillaDialer creates a GorillaDialer.
 func NewGorillaDialer(d *websocket.Dialer) *GorillaDialer {
 	if d == nil {
 		d = websocket.DefaultDialer
@@ -32,7 +32,7 @@ func NewGorillaDialer(d *websocket.Dialer) *GorillaDialer {
 	return &GorillaDialer{dialer: d}
 }
 
-// DialContext 建立 WebSocket 连接。
+// DialContext opens a WebSocket connection.
 func (d *GorillaDialer) DialContext(ctx context.Context, url string, requestHeader http.Header) (WSConn, *http.Response, error) {
 	conn, resp, err := d.dialer.DialContext(ctx, url, requestHeader)
 	if err != nil {

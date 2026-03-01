@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// Error 统一错误模型。
+// Error is the unified error model.
 type Error struct {
 	Code       int    `json:"code"`
 	Message    string `json:"message"`
@@ -53,7 +53,7 @@ func (e *Error) Retryable() bool {
 	return e.IsRateLimit() || e.IsServerError()
 }
 
-// AsError 将 error 转换为 *Error。
+// AsError converts an error to *Error.
 func AsError(err error) (*Error, bool) {
 	var e *Error
 	if errors.As(err, &e) {

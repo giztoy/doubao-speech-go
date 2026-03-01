@@ -22,6 +22,12 @@ go run ./examples/asr_v2_sauc_ws
 ```
 
 If `-audio` is omitted, the example uses the embedded fixture audio (`sample_zh_16k.pcm`).
+In that mode, `-format` and `-sample-rate` are ignored and forced to `pcm/16000`.
+
+Since the embedded sample file is managed by Git LFS, run `git lfs pull` after cloning before using default embedded mode.
+
+This example currently supports **PCM only**.
+If `-format` is set to a non-PCM value, the example exits with an error.
 
 If you prefer Access Key auth:
 
@@ -35,8 +41,8 @@ go run ./examples/asr_v2_sauc_ws -audio /path/to/audio.pcm -resource-id volc.big
 
 - Recommended input: `pcm` 16kHz, mono, 16-bit
 - You can override via flags:
-  - `-format` (default: `pcm`)
-  - `-sample-rate` (default: `16000`)
+  - `-format` (`pcm` only)
+  - `-sample-rate` (default: `16000`, and forced to `16000` when using embedded sample)
   - `-chunk-size` (default: `3200` bytes)
   - `-resource-id` (default: `volc.seedasr.sauc.duration`)
 

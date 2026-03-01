@@ -7,17 +7,17 @@ import (
 
 const defaultTaskPollInterval = 2 * time.Second
 
-// TaskPoller 轮询函数，返回当前状态与可选结果。
+// TaskPoller polls current task status and optional result.
 type TaskPoller[T any] func(ctx context.Context, taskID string) (status TaskStatus, result *T, err error)
 
-// Task 表示异步任务。
+// Task represents an asynchronous task.
 type Task[T any] struct {
 	ID       string
 	poller   TaskPoller[T]
 	interval time.Duration
 }
 
-// NewTask 创建异步任务句柄。
+// NewTask creates an asynchronous task handle.
 func NewTask[T any](id string, poller TaskPoller[T], interval time.Duration) *Task[T] {
 	if interval <= 0 {
 		interval = defaultTaskPollInterval
@@ -29,7 +29,7 @@ func NewTask[T any](id string, poller TaskPoller[T], interval time.Duration) *Ta
 	}
 }
 
-// Wait 阻塞轮询直到任务结束。
+// Wait blocks until task completion.
 func (t *Task[T]) Wait(ctx context.Context) (*T, error) {
 	if t == nil {
 		return nil, newAPIError(CodeParamError, "task is nil")

@@ -1,13 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	_ "embed"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	doubaospeech "github.com/giztoy/doubao-speech-go"
+)
+
+//go:embed sample_zh_16k.pcm
+var embeddedSampleAudio []byte
+
+const (
+	embeddedSampleFormat     = "pcm"
+	embeddedSampleSampleRate = 16000
 )
 
 func main() {
@@ -19,36 +30,63 @@ func main() {
 		resourceID string
 	)
 
-	flag.StringVar(&audioPath, "audio", "", "本地音频文件路径（建议 16k PCM）")
-	flag.IntVar(&sampleRate, "sample-rate", 16000, "音频采样率")
-	flag.StringVar(&format, "format", "pcm", "音频格式：pcm/wav/mp3/... ")
-	flag.IntVar(&chunkSize, "chunk-size", 3200, "每次发送字节数")
-	flag.StringVar(&resourceID, "resource-id", doubaospeech.ResourceASRStreamV2, "ASR 资源 ID，例如 volc.seedasr.sauc.duration 或 volc.bigasr.sauc.duration")
+	flag.StringVar(&audioPath, "audio", "", "Local audio file path (recommended 16k PCM)")
+	flag.IntVar(&sampleRate, "sample-rate", 16000, "Audio sample rate")
+	flag.StringVar(&format, "format", "pcm", "Audio format (currently pcm only)")
+	flag.IntVar(&chunkSize, "chunk-size", 3200, "Bytes per audio chunk")
+	flag.StringVar(&resourceID, "resource-id", doubaospeech.ResourceASRStreamV2, "ASR resource ID, e.g. volc.seedasr.sauc.duration or volc.bigasr.sauc.duration")
 	flag.Parse()
 
-	resolvedAudioPath, cleanupAudioFile, err := resolveAudioPath(audioPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "准备音频失败: %v\n", err)
+	normalizedFormat := strings.ToLower(strings.TrimSpace(format))
+	if normalizedFormat != embeddedSampleFormat {
+		fmt.Fprintf(os.Stderr, "unsupported -format %q: this example currently supports pcm only\n", format)
 		os.Exit(2)
 	}
-	defer cleanupAudioFile()
 
 	appID := os.Getenv("DOUBAO_APP_ID")
 	accessKey := os.Getenv("DOUBAO_ACCESS_KEY")
 	apiKey := os.Getenv("DOUBAO_API_KEY")
 	if appID == "" {
-		fmt.Fprintln(os.Stderr, "缺少环境变量 DOUBAO_APP_ID")
+		fmt.Fprintln(os.Stderr, "missing environment variable DOUBAO_APP_ID")
 		os.Exit(2)
 	}
 	if accessKey == "" && apiKey == "" {
-		fmt.Fprintln(os.Stderr, "缺少 DOUBAO_ACCESS_KEY 或 DOUBAO_API_KEY")
+		fmt.Fprintln(os.Stderr, "missing DOUBAO_ACCESS_KEY or DOUBAO_API_KEY")
 		os.Exit(2)
 	}
 
-	audio, err := os.ReadFile(resolvedAudioPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "读取音频失败: %v\n", err)
-		os.Exit(1)
+	var (
+		audio []byte
+		err   error
+	)
+	if audioPath == "" {
+		if len(embeddedSampleAudio) == 0 {
+			fmt.Fprintln(os.Stderr, "embedded sample audio is empty")
+			os.Exit(2)
+		}
+		if isLFSPointerContent(embeddedSampleAudio) {
+			fmt.Fprintln(os.Stderr, "embedded sample audio is currently a Git LFS pointer; run `git lfs pull` first or pass -audio with a local file")
+			os.Exit(2)
+		}
+		audio = embeddedSampleAudio
+		fmt.Fprintln(os.Stderr, "-audio is not provided, using embedded sample: sample_zh_16k.pcm")
+
+		if normalizedFormat != embeddedSampleFormat || sampleRate != embeddedSampleSampleRate {
+			fmt.Fprintf(
+				os.Stderr,
+				"when using embedded sample, -format/-sample-rate are ignored and forced to %s/%d\n",
+				embeddedSampleFormat,
+				embeddedSampleSampleRate,
+			)
+		}
+		format = embeddedSampleFormat
+		sampleRate = embeddedSampleSampleRate
+	} else {
+		audio, err = os.ReadFile(audioPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to read audio file: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	if chunkSize <= 0 {
@@ -76,7 +114,7 @@ func main() {
 		ResultType: "full",
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "创建会话失败: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to open session: %v\n", err)
 		os.Exit(1)
 	}
 	defer session.Close()
@@ -90,21 +128,27 @@ func main() {
 		chunk := audio[offset:end]
 		isLast := end == len(audio)
 		if err := session.SendAudio(ctx, chunk, isLast); err != nil {
-			fmt.Fprintf(os.Stderr, "发送音频失败: %v\n", err)
+			fmt.Fprintf(os.Stderr, "failed to send audio: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
 	for result, err := range session.Recv() {
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "接收失败: %v\n", err)
+			fmt.Fprintf(os.Stderr, "receive error: %v\n", err)
 			os.Exit(1)
 		}
 
 		fmt.Printf("[final=%v] %s\n", result.IsFinal, result.Text)
 		if result.IsFinal {
-			// 示例场景：拿到最终结果后退出。
+			// For this example, exit once final result arrives.
 			break
 		}
 	}
+}
+
+func isLFSPointerContent(data []byte) bool {
+	const lfsPointerPrefix = "version https://git-lfs.github.com/spec/v1"
+	trimmed := bytes.TrimSpace(data)
+	return bytes.HasPrefix(trimmed, []byte(lfsPointerPrefix))
 }

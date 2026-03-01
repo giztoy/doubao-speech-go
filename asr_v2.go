@@ -18,7 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// ASRServiceV2 提供 SAUC WebSocket 流式识别能力。
+// ASRServiceV2 provides SAUC WebSocket streaming recognition.
 type ASRServiceV2 struct {
 	client *Client
 	dialer transport.WSDialer
@@ -31,7 +31,7 @@ func newASRServiceV2(c *Client) *ASRServiceV2 {
 	}
 }
 
-// ASRV2Session 表示一次流式识别会话。
+// ASRV2Session represents one streaming recognition session.
 type ASRV2Session struct {
 	conn   transport.WSConn
 	client *Client
@@ -48,7 +48,7 @@ type ASRV2Session struct {
 	closeErr  error
 }
 
-// OpenStreamSession 建立 SAUC V2 WebSocket 会话。
+// OpenStreamSession opens a SAUC V2 WebSocket session.
 func (s *ASRServiceV2) OpenStreamSession(ctx context.Context, cfg *ASRV2Config) (*ASRV2Session, error) {
 	if cfg == nil {
 		return nil, newAPIError(CodeParamError, "config is nil")
@@ -91,9 +91,9 @@ func (s *ASRServiceV2) OpenStreamSession(ctx context.Context, cfg *ASRV2Config) 
 	return session, nil
 }
 
-// SendAudio 发送音频分片。
+// SendAudio sends one audio chunk.
 //
-// isLast=true 表示最后一帧（flags=2）。
+// isLast=true marks the last frame (flags=2).
 func (s *ASRV2Session) SendAudio(ctx context.Context, audio []byte, isLast bool) error {
 	if len(audio) == 0 && !isLast {
 		return newAPIError(CodeParamError, "audio payload is empty")
@@ -110,7 +110,7 @@ func (s *ASRV2Session) SendAudio(ctx context.Context, audio []byte, isLast bool)
 	return s.writeBinary(packet)
 }
 
-// Recv 按流式方式返回识别结果。
+// Recv yields recognition results as a stream.
 func (s *ASRV2Session) Recv() iter.Seq2[*ASRV2Result, error] {
 	return func(yield func(*ASRV2Result, error) bool) {
 		results := s.resultCh
@@ -138,10 +138,10 @@ func (s *ASRV2Session) Recv() iter.Seq2[*ASRV2Result, error] {
 	}
 }
 
-// Close 关闭会话。
+// Close closes the session.
 func (s *ASRV2Session) Close() error {
 	s.closeOnce.Do(func() {
-		// 尽力发送 finish 事件；失败不阻止连接关闭。
+		// Best-effort finish event; failures should not block close.
 		_ = s.sendSessionFinish(context.Background())
 
 		close(s.closed)
@@ -294,10 +294,10 @@ func (s *ASRV2Session) receiveLoop() {
 				s.pushErr(parseWSErrorPayload(frame.Payload, frame.ErrorCode))
 				return
 			default:
-				// 其他帧类型本次迁移阶段忽略。
+				// Ignore other frame types in this migration scope.
 			}
 		default:
-			// 忽略未知消息类型。
+			// Ignore unknown message types.
 		}
 	}
 }
@@ -338,7 +338,7 @@ func decodeASRV2Result(frame *protocol.ParsedFrame, fallbackReqID string) (*ASRV
 	}
 
 	if payload.Result.Text == "" && len(payload.Result.Utterances) == 0 {
-		// 可能是中间控制帧，忽略。
+		// This can be an intermediate control frame.
 		return nil, nil
 	}
 

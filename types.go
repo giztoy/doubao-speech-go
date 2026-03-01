@@ -1,6 +1,6 @@
 package doubaospeech
 
-// AudioFormat 表示音频格式。
+// AudioFormat represents audio encoding format.
 type AudioFormat string
 
 const (
@@ -12,7 +12,7 @@ const (
 	FormatM4A AudioFormat = "m4a"
 )
 
-// SampleRate 表示采样率。
+// SampleRate represents audio sample rate.
 type SampleRate int
 
 const (
@@ -25,7 +25,7 @@ const (
 	SampleRate48000 SampleRate = 48000
 )
 
-// Language 表示识别语言。
+// Language represents recognition language.
 type Language string
 
 const (
@@ -35,7 +35,7 @@ const (
 	LanguageKoKR Language = "ko-KR"
 )
 
-// TaskStatus 异步任务状态。
+// TaskStatus is async task status.
 type TaskStatus string
 
 const (
@@ -46,12 +46,12 @@ const (
 	TaskStatusCancelled  TaskStatus = "cancelled"
 )
 
-// ASRV2Config 是 SAUC V2 流式识别会话配置。
+// ASRV2Config is SAUC V2 streaming session config.
 type ASRV2Config struct {
 	Format     AudioFormat `json:"format" yaml:"format"`
 	SampleRate SampleRate  `json:"sample_rate" yaml:"sample_rate"`
 	Channel    int         `json:"channel,omitempty" yaml:"channel,omitempty"`
-	Channels   int         `json:"channels,omitempty" yaml:"channels,omitempty"` // 兼容字段
+	Channels   int         `json:"channels,omitempty" yaml:"channels,omitempty"` // Backward-compatible alias field.
 	Bits       int         `json:"bits,omitempty" yaml:"bits,omitempty"`
 	Language   Language    `json:"language,omitempty" yaml:"language,omitempty"`
 
@@ -65,7 +65,7 @@ type ASRV2Config struct {
 	ResourceID string `json:"resource_id,omitempty" yaml:"resource_id,omitempty"`
 }
 
-// ASRV2Result 是单次回包解析结果。
+// ASRV2Result is one parsed server response.
 type ASRV2Result struct {
 	Text       string           `json:"text"`
 	Utterances []ASRV2Utterance `json:"utterances,omitempty"`
@@ -74,7 +74,7 @@ type ASRV2Result struct {
 	ReqID      string           `json:"reqid,omitempty"`
 }
 
-// ASRV2Utterance 是句级信息。
+// ASRV2Utterance contains utterance-level info.
 type ASRV2Utterance struct {
 	Text       string      `json:"text"`
 	StartTime  int         `json:"start_time"`
@@ -85,7 +85,7 @@ type ASRV2Utterance struct {
 	Confidence float64     `json:"confidence,omitempty"`
 }
 
-// ASRV2Word 是词级时间戳信息。
+// ASRV2Word contains word-level timing info.
 type ASRV2Word struct {
 	Text      string  `json:"text"`
 	StartTime int     `json:"start_time"`
@@ -93,7 +93,7 @@ type ASRV2Word struct {
 	Conf      float64 `json:"conf,omitempty"`
 }
 
-// 兼容旧命名：本次迁移统一映射到 V2 类型。
+// Backward-compatible aliases mapped to V2 types.
 type StreamASRConfig = ASRV2Config
 type ASRChunk = ASRV2Result
 type Utterance = ASRV2Utterance

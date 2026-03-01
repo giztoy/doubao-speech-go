@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// NewReqID 生成请求 ID。
+// NewReqID generates a request ID.
 func NewReqID(prefix string) string {
 	b := make([]byte, 12)
 	if _, err := rand.Read(b); err != nil {

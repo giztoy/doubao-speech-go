@@ -11,12 +11,12 @@ import (
 	"github.com/giztoy/doubao-speech-go/internal/auth"
 )
 
-// doJSONRequest 发送 JSON HTTP 请求。
+// doJSONRequest sends a JSON HTTP request.
 //
-// 说明：
-//   - path 会拼接到 baseURL；
-//   - 对 /api/v3 路径默认应用 V2 鉴权；
-//   - 非 2xx 响应将统一转换为 *Error。
+// Notes:
+//   - path is joined with baseURL;
+//   - /api/v3 paths use V2 auth headers by default;
+//   - non-2xx responses are converted to *Error.
 func (c *Client) doJSONRequest(ctx context.Context, method, path string, body any, out any, resourceID string) error {
 	endpoint := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(path, "/")
 

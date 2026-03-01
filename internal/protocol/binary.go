@@ -46,10 +46,10 @@ const (
 	CompressionGzip Compression = 0x1
 )
 
-// ParsedFrame 是解析后的协议帧。
+// ParsedFrame is a parsed protocol frame.
 type ParsedFrame struct {
 	Version       Version
-	HeaderSize    int // 以字节计
+	HeaderSize    int // In bytes.
 	MessageType   MessageType
 	Flags         MessageFlags
 	Serialization Serialization
@@ -62,13 +62,13 @@ type ParsedFrame struct {
 	Payload []byte
 }
 
-// BuildFullClientJSON 构造 Full Client(JSON) 消息。
+// BuildFullClientJSON builds a Full Client(JSON) message.
 func BuildFullClientJSON(payload []byte) ([]byte, error) {
 	return buildClientFrame(MessageTypeFullClient, FlagNoSequence, SerializationJSON, CompressionNone, payload)
 }
 
-// BuildAudioOnly 构造 Audio-Only 消息。
-// isLast=true 时 flags=2（SAUC 约定）。
+// BuildAudioOnly builds an Audio-Only message.
+// isLast=true sets flags=2 (SAUC convention).
 func BuildAudioOnly(payload []byte, isLast bool) ([]byte, error) {
 	flags := FlagNoSequence
 	if isLast {
@@ -102,7 +102,7 @@ func buildClientFrame(msgType MessageType, flags MessageFlags, ser Serialization
 	return buf.Bytes(), nil
 }
 
-// ParseServerFrame 解析服务端二进制帧。
+// ParseServerFrame parses a server binary frame.
 func ParseServerFrame(data []byte) (*ParsedFrame, error) {
 	if len(data) < 8 {
 		return nil, fmt.Errorf("frame too short: %d", len(data))
@@ -128,7 +128,7 @@ func ParseServerFrame(data []byte) (*ParsedFrame, error) {
 
 	hasSequence := frame.Flags == FlagPositiveSequence || frame.Flags == FlagNegativeSequence || frame.Flags == FlagNegativeWithSeq
 	if frame.MessageType == MessageTypeAudioOnlyClient {
-		// SAUC 音频帧是特例：flags=2 仅表示最后一帧，不携带 sequence。
+		// SAUC audio frame is a special case: flags=2 means last frame, no sequence field.
 		hasSequence = false
 	}
 
