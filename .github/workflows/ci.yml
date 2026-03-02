@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Build (exclude examples)
+        shell: bash
+        run: |
+          go list ./... | grep -vE '/examples(/|$)' | xargs go build
+
+      - name: Test (exclude examples)
+        shell: bash
+        run: |
+          go list ./... | grep -vE '/examples(/|$)' | xargs go test

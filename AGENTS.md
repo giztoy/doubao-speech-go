@@ -1,31 +1,45 @@
 # AGENTS.md
 
-Agent operating guide for this repository.
+Agent guide for `github.com/giztoy/doubao-speech-go`.
 
-## Repository profile
-- Language: Go only.
-- Module: `github.com/giztoy/doubao-speech-go`.
-- Go version: `1.26`.
-- Build system: no Bazel.
-- Workflow: local development + direct merge.
-- No mandatory PR or CI gate before merge.
+## 1) Repository profile
+- Language: Go only
+- Module: `github.com/giztoy/doubao-speech-go`
+- Go version: `1.26` (`go.mod`)
+- Build/test toolchain: `go build`, `go test`, `go vet`
+- Workflow: local development + direct merge
+- No mandatory PR/CI gate before merge in this repo model
 
-## Cursor/Copilot rule files
-Checked and currently **not present**:
+## 2) Cursor/Copilot rules
+Checked and currently not present:
 - `.cursor/rules/**`
 - `.cursorrules`
 - `.github/copilot-instructions.md`
-If these files are added later, they become additional constraints.
+If these files are added later, they become hard constraints.
 
-## Commands: build / lint / test
-Run from repository root.
+## 3) Layout snapshot
+- Public SDK APIs: root `*.go` (`client.go`, `asr_v2.go`, `tts_v2.go`, `tts_v2_ws.go`, `realtime.go`, `voice_clone.go`)
+- Internal details: `internal/auth`, `internal/transport`, `internal/protocol`, `internal/util`
+- Examples: `examples/asr_v2_sauc_ws`, `examples/tts_v2/http_stream`, `examples/tts_v2/websocket`, `examples/realtime`, `examples/voice_clone`
+- Docs: `docs/*.md`
+
+## 4) Setup notes
+Run commands from repository root.
+Git LFS is required for embedded fixture:
+```bash
+git lfs pull
+```
+LFS file:
+- `examples/asr_v2_sauc_ws/sample_zh_16k.pcm`
+
+## 5) Build / lint / test commands
 
 ### Format
 ```bash
-gofmt -w *.go internal/auth/*.go internal/protocol/*.go internal/transport/*.go internal/util/*.go examples/asr_v2_sauc_ws/*.go
+gofmt -w *.go internal/auth/*.go internal/protocol/*.go internal/transport/*.go internal/util/*.go examples/asr_v2_sauc_ws/*.go examples/realtime/*.go examples/tts_v2/http_stream/*.go examples/tts_v2/websocket/*.go examples/voice_clone/*.go
 ```
 
-### Build
+### Build all
 ```bash
 go build ./...
 ```
@@ -40,20 +54,26 @@ Optional (if installed):
 staticcheck ./...
 ```
 
-### Run all tests
+### Test all
 ```bash
 go test ./...
 ```
 
-### Run tests in one package
+### Test one package
 ```bash
 go test . -v
 go test ./internal/protocol -v
 ```
 
 ### Run a single test (important)
+Root package examples:
 ```bash
+go test . -run TestVoiceCloneUploadAndWaitSuccess -count=1 -v
+go test . -run TestRealtimeBackpressureReturnsError -count=1 -v
 go test . -run TestOpenStreamSessionAuthFailureErrorStructure -count=1 -v
+```
+Internal package example:
+```bash
 go test ./internal/protocol -run TestParseServerFrameGzip -count=1 -v
 ```
 
@@ -62,111 +82,83 @@ go test ./internal/protocol -run TestParseServerFrameGzip -count=1 -v
 go test ./... -run 'TestName/SubCase' -count=1 -v
 ```
 
-### Disable test cache
+### Disable test cache / race mode
 ```bash
 go test ./... -count=1
-```
-
-### Race test (recommended for concurrency edits)
-```bash
 go test ./... -race
 ```
 
-## Example commands
-Primary example directory:
-```text
-examples/asr_v2_sauc_ws/
-```
+## 6) Example run commands
+See API-specific docs for full env/flags:
+- `docs/asr_v2_sauc_ws.md`
+- `docs/tts_v2_http_stream.md`
+- `docs/tts_v2_websocket.md`
+- `docs/voice_clone.md`
 
-Run with API key:
+Quick smoke test:
 ```bash
-DOUBAO_APP_ID=<your_app_id> \
-DOUBAO_API_KEY=<your_api_key> \
-go run ./examples/asr_v2_sauc_ws
+DOUBAO_APP_ID=<your_app_id> DOUBAO_API_KEY=<your_api_key> go run ./examples/asr_v2_sauc_ws
 ```
 
-Run with Access Key:
-```bash
-DOUBAO_APP_ID=<your_app_id> \
-DOUBAO_ACCESS_KEY=<your_access_key> \
-go run ./examples/asr_v2_sauc_ws -resource-id volc.bigasr.sauc.duration
-```
-
-Example behavior:
-- If `-audio` is omitted, embedded sample audio is used.
-- Embedded fixture: `sample_zh_16k.pcm`.
-- Example currently supports `pcm` format only.
-- In embedded mode, sample rate is forced to `16000`.
-
-## Git LFS requirements
-The embedded fixture is tracked by Git LFS:
-- `examples/asr_v2_sauc_ws/sample_zh_16k.pcm`
-
-After cloning, run:
-```bash
-git lfs pull
-```
-
-If LFS content is missing, embedded mode may detect an LFS pointer payload and exit with guidance.
-
-## Code style guidelines
+## 7) Code style guidelines
 
 ### Formatting and imports
-- Always run `gofmt -w` before finishing.
-- Keep imports gofmt-ordered.
-- Prefer stdlib imports first, then third-party, then module-internal imports.
+- Always run `gofmt -w` before finishing
+- Keep imports gofmt-ordered
+- Import grouping: stdlib, third-party, module-internal
 
-### Naming
-- Exported names: `PascalCase`.
-- Unexported names: `camelCase`.
-- File names: lowercase; use underscores only when helpful.
-- Keep common acronyms conventional (`ID`, `URL`, `API`).
+### Naming and files
+- Exported identifiers: `PascalCase`
+- Unexported identifiers: `camelCase`
+- Acronyms use Go conventions: `ID`, `URL`, `API`, `HTTP`, `WS`
+- File names lowercase; use underscores only when useful
 
-### Types and API design
-- Keep public types stable and explicit.
-- Continue using option-pattern config for client/service APIs.
-- Keep implementation-only code under `internal/`.
-- Keep one API example per subdirectory under `examples/`.
+### API and type design
+- Keep public API stable and explicit
+- Prefer option pattern via `NewClient(..., opts...)`
+- Put implementation-only logic in `internal/`
 
-### Context usage
-- Put `context.Context` first for I/O/network APIs.
-- Respect cancellation and timeout paths.
+### Context, cancellation, and concurrency
+- Put `context.Context` first in I/O/network APIs
+- Respect cancellation/timeouts in HTTP and WS flows
+- Ensure close paths are idempotent and deterministic
 
 ### Error handling
-- Return errors; avoid panic for normal control flow.
-- Wrap errors with operation context.
-- Keep API-facing errors aligned with `error.go` (`code/message`, plus reqid/trace/log when available).
-- Do not silently swallow network/protocol errors.
+- Return errors; do not use panic for expected failures
+- Wrap with operation context (`wrapError`) where useful
+- Keep API-facing errors aligned with `error.go` (`code/message` + optional `reqid/trace/log/http_status`)
+- Never swallow network/protocol errors silently
 
-### Streaming behavior
-- Keep result/error delivery deterministic.
-- Keep final-frame semantics explicit and regression-tested.
-- Ensure close/cleanup paths are idempotent.
+### Streaming / async behavior
+- Keep event/chunk ordering deterministic
+- Make final-frame/final-event semantics explicit and regression-tested
+- For async tasks, define terminal states and unknown-state behavior clearly
 
-### Testing
-- Keep tests deterministic and focused.
-- Use clear failure messages with expected vs actual values.
-- Add regression tests for protocol flags, auth failures, and edge cases.
+### Testing standards
+- Prefer table-driven tests for validation/mapping logic
+- Keep tests deterministic and focused
+- Use clear failure messages (expected vs actual)
 
-### Language in code
-- Keep Go code comments and CLI/user-facing strings in English.
+### Language policy
+- Code comments and user-facing CLI strings should be English
+- Docs/examples must match actual API behavior and flags
 
-## Security and secrets
-- Never commit secrets (keys, tokens, credentials).
-- Never print secrets in logs or errors.
-- Use environment variables for local credentials.
+## 8) Security and secrets
+- Never commit tokens/keys/credentials
+- Never print secrets in logs/errors
+- Use environment variables for local credentials
 
-## Commit guidance
-- Commit only when explicitly requested.
-- Preferred commit message format: `{module/submodule}: {subject}`.
-- Subject should start with lowercase.
+## 9) Commit guidance
+- Commit only when explicitly requested
+- Preferred message format: `{module/submodule}: {subject}`
+- Subject should start with lowercase
 
-## Minimal completion checklist
-Before declaring work complete:
-1. Run `gofmt -w` on changed Go files.
-2. Run `go test ./...`.
-3. Run `go build ./...`.
-4. Run affected example(s) when behavior changed.
-5. Verify no secrets were introduced.
+## 10) Minimal completion checklist
+1. `gofmt -w` on changed Go files
+2. `go test ./...`
+3. `go build ./...`
+4. `go vet ./...`
+5. Run affected examples when behavior changes
+6. Verify no secrets were introduced
 
-If all checks pass, the change is ready for direct merge in this repo model.
+If all checks pass, the change is ready for direct merge.
