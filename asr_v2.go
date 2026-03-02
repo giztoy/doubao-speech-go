@@ -386,10 +386,11 @@ func decodeASRV2Result(frame *protocol.ParsedFrame, fallbackReqID string) (*ASRV
 
 func parseWSErrorPayload(payload []byte, fallbackCode uint32) error {
 	var e struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-		ReqID   string `json:"reqid"`
-		Error   string `json:"error"`
+		Code       int    `json:"code"`
+		StatusCode int    `json:"status_code"`
+		Message    string `json:"message"`
+		ReqID      string `json:"reqid"`
+		Error      string `json:"error"`
 	}
 	if err := json.Unmarshal(payload, &e); err != nil {
 		msg := string(payload)
@@ -412,6 +413,9 @@ func parseWSErrorPayload(payload []byte, fallbackCode uint32) error {
 	}
 
 	code := e.Code
+	if code == 0 {
+		code = e.StatusCode
+	}
 	if code == 0 {
 		code = int(fallbackCode)
 	}

@@ -98,3 +98,21 @@ type StreamASRConfig = ASRV2Config
 type ASRChunk = ASRV2Result
 type Utterance = ASRV2Utterance
 type Word = ASRV2Word
+
+// TTSV2WSConfig is bidirectional TTS V2 WebSocket session config.
+type TTSV2WSConfig struct {
+	Speaker    string      `json:"speaker" yaml:"speaker"`
+	Format     AudioFormat `json:"format,omitempty" yaml:"format,omitempty"`
+	SampleRate SampleRate  `json:"sample_rate,omitempty" yaml:"sample_rate,omitempty"`
+
+	// ResourceID defaults to seed-tts-2.0 when empty.
+	ResourceID string `json:"resource_id,omitempty" yaml:"resource_id,omitempty"`
+}
+
+// TTSV2WSChunk is one downstream chunk from TTS V2 WebSocket stream.
+type TTSV2WSChunk struct {
+	Audio   []byte `json:"-"`
+	IsFinal bool   `json:"is_final"`
+	Event   int32  `json:"event"`
+	ReqID   string `json:"reqid,omitempty"`
+}

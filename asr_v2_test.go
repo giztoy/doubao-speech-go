@@ -275,6 +275,54 @@ func TestDecodeASRV2ResultFinalByNegativeSequence(t *testing.T) {
 	}
 }
 
+func TestParseWSErrorPayloadCodeAndStatusCodePriority(t *testing.T) {
+	tests := []struct {
+		name         string
+		payload      string
+		fallbackCode uint32
+		wantCode     int
+		wantReqID    string
+	}{
+		{
+			name:         "prefer code over status_code",
+			payload:      `{"code":3002,"status_code":55000000,"message":"auth failed","reqid":"r-code"}`,
+			fallbackCode: 0,
+			wantCode:     3002,
+			wantReqID:    "r-code",
+		},
+		{
+			name:         "use status_code when code missing",
+			payload:      `{"status_code":45000001,"message":"invalid request","reqid":"r-status"}`,
+			fallbackCode: 0,
+			wantCode:     45000001,
+			wantReqID:    "r-status",
+		},
+		{
+			name:         "use fallback when code and status_code missing",
+			payload:      `{"message":"fallback path","reqid":"r-fallback"}`,
+			fallbackCode: 7788,
+			wantCode:     7788,
+			wantReqID:    "r-fallback",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := parseWSErrorPayload([]byte(tc.payload), tc.fallbackCode)
+			apiErr, ok := AsError(err)
+			if !ok {
+				t.Fatalf("want *Error, got %T (%v)", err, err)
+			}
+			if apiErr.Code != tc.wantCode {
+				t.Fatalf("code = %d, want %d", apiErr.Code, tc.wantCode)
+			}
+			if apiErr.ReqID != tc.wantReqID {
+				t.Fatalf("reqid = %q, want %q", apiErr.ReqID, tc.wantReqID)
+			}
+		})
+	}
+}
+
 func waitRecvError(ctx context.Context, seq iter.Seq2[*ASRV2Result, error]) error {
 	ch := make(chan error, 1)
 	go func() {
