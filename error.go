@@ -80,6 +80,10 @@ type apiErrorPayload struct {
 	TraceID string `json:"trace_id"`
 }
 
+type apiErrorEnvelope struct {
+	Header *apiErrorPayload `json:"header"`
+}
+
 func parseAPIError(statusCode int, body []byte, logID string) error {
 	if len(body) == 0 {
 		return &Error{
@@ -97,6 +101,13 @@ func parseAPIError(statusCode int, body []byte, logID string) error {
 			Message:    string(body),
 			HTTPStatus: statusCode,
 			LogID:      logID,
+		}
+	}
+
+	if payload.Code == 0 && payload.Message == "" && payload.Error == "" {
+		var envelope apiErrorEnvelope
+		if err := json.Unmarshal(body, &envelope); err == nil && envelope.Header != nil {
+			payload = *envelope.Header
 		}
 	}
 

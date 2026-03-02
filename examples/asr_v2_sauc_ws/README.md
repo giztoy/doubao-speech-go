@@ -4,6 +4,10 @@ ASR V2 SAUC WebSocket streaming recognition:
 
 open session -> send audio -> receive results -> close.
 
+For TTS V2 HTTP stream example and voice list, see:
+
+- `examples/tts_v2/http_stream/README.md`
+
 ## Run
 
 ```bash
