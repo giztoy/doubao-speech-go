@@ -39,11 +39,14 @@ const (
 
 // Client is the SDK entry point.
 //
-// In this migration stage, only ASR V2 SAUC WS is implemented.
+// In this migration stage, ASR V2 SAUC WS and Realtime are implemented.
 type Client struct {
 	// ASR V2 streaming recognition.
 	ASR   *ASRServiceV2
 	ASRV2 *ASRServiceV2
+
+	// Realtime dialogue.
+	Realtime *RealtimeService
 
 	config *clientConfig
 }
@@ -90,6 +93,7 @@ func NewClient(appID string, opts ...Option) *Client {
 	asrV2 := newASRServiceV2(c)
 	c.ASR = asrV2
 	c.ASRV2 = asrV2
+	c.Realtime = newRealtimeService(c)
 
 	return c
 }

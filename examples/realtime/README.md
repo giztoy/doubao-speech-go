@@ -1,20 +1,46 @@
-# realtime example
+# Realtime multi-turn example
 
-This directory contains a single example: **multi-turn realtime dialogue**.
+This example demonstrates one **single realtime session** with multiple turns:
 
-## Example goals
+1. Open session with initial prompt + generation props
+2. Send round-1 user message and receive streaming events until final
+3. Update history before round-2
+4. Update prompt before round-2
+5. Update generation props before round-2
+6. Send round-2 user message and receive events until final
+7. Trigger one interrupt request
+8. Close session twice to verify idempotent close
 
-The example should cover the full session lifecycle and multi-turn capabilities:
+### API coverage in this example
 
-1. Open connection and start session
-2. Send/receive turn 1 (streaming events + final event)
-3. Update conversation history
-4. Update system prompt
-5. Update generation props (for example: `temperature`, `top_p`, `max_tokens`)
-6. Continue with turn 2 and verify updated settings are effective
-7. Optional interrupt + idempotent close (`Close` called twice)
+Covered directly in `main.go`:
 
-## Run (placeholder)
+- `OpenSession`
+- `SendUserMessage`
+- `SendText` (alias)
+- `RecvEvent`
+- `Recv` (iterator form)
+- `UpdateHistory`
+- `ReplaceHistory`
+- `UpdatePrompt`
+- `UpdateProps`
+- `Interrupt`
+- `Close` (idempotent)
+
+Not covered in this single example (recommended scenarios):
+
+- `Dial` + `StartSession`: when you need explicit connection lifecycle control
+- `Connect`: when you prefer one-shot connect+session API (equivalent semantics to `OpenSession`)
+- `SendAudio`: microphone/PCM streaming scenarios
+- `SayHello`: greeting bootstrap flow before user turn
+- `SendTTSText`: server-side TTS text streaming scenarios
+
+## Requirements
+
+- `DOUBAO_APP_ID` (required)
+- `DOUBAO_API_KEY` (recommended) **or** `DOUBAO_ACCESS_KEY`
+
+## Run
 
 ```bash
 DOUBAO_APP_ID=<your_app_id> \
@@ -22,31 +48,46 @@ DOUBAO_API_KEY=<your_api_key> \
 go run ./examples/realtime
 ```
 
-> Note: Runtime flags (for example `-speaker`) must match what `main.go` actually supports.
+Use Access Key auth:
 
-## Voice list for Realtime model (`volc.speech.dialog`)
+```bash
+DOUBAO_APP_ID=<your_app_id> \
+DOUBAO_ACCESS_KEY=<your_access_key> \
+go run ./examples/realtime -speaker zh_female_cancan
+```
 
-Last updated: **2026-03-01**
+## Key flags
 
-| voice_id | Language | Gender / Style | Source |
+- `-speaker`: TTS speaker/voice ID (default: `zh_female_cancan`)
+- `-round1`: first user message
+- `-round2`: second user message
+
+## Voice list (realtime-compatible references)
+
+> Table update date: **2026-03-02**
+
+| voice_id | Language | Gender / style | Remark |
 |---|---|---|---|
-| `zh_female_vv_jupiter_bigtts` | zh-CN | female / realtime conversation | realtime model config (default) |
-| `zh_male_yunzhou_jupiter_bigtts` | zh-CN | male / realtime conversation | realtime model config |
-| `zh_female_cancan_jupiter_bigtts` | zh-CN | female / lively | voice list example |
-| `BV700_streaming_jupiter_bigtts` | zh-CN | female / classic Càncàn style | voice list example |
-| `zh_female_qingxin_moon_bigtts` | zh-CN | female / fresh | voice list example |
-| `zh_female_shuangkuaisisi_moon_bigtts` | zh-CN | female / energetic | voice list example |
+| `zh_female_cancan` | Chinese (Mandarin) | Female / standard | Default in this example, commonly used in VolcEngine realtime samples |
+| `BV700_streaming` | Chinese (Mandarin) | Female / standard (Cancan) | BytePlus Speech "Supported voice and languages" |
+| `BV701_streaming` | Chinese (Mandarin) | Male / expressive (Qingcang) | Supports multi-emotion in official docs |
+| `BV138_streaming` | English (US) | Female / expressive (Lawrence) | Dialog expressive voice in official docs |
+| `BV027_streaming` | English (US) | Female / formal (Amelia) | General English voice |
+| `BV520_streaming` | Japanese | Female / outgoing (Himari) | Japanese voice option |
 
-The list above is the current set used in upstream docs/examples/configurations.
-For your own account, validate availability in console and by a quick runtime smoke test.
+## Official sources
 
-## References
-
-- Realtime API access documentation:
+- Realtime API entry (VolcEngine):
   - https://www.volcengine.com/docs/6561/1594356
-- TTS voice catalog:
+- Realtime/TTS voice list references:
+  - https://docs.byteplus.com/en/docs/speech/docs-voice-parameters-1
   - https://www.volcengine.com/docs/6561/1257544
-- Speaker listing API (console side):
-  - https://www.volcengine.com/docs/6561/2160690
 
-> Availability may vary by account permissions. If you get speaker permission errors, verify your console entitlement and latest official documentation.
+## Default speaker note
+
+`main.go` uses `zh_female_cancan` by default (`-speaker` flag).
+If your account is configured with BytePlus/BV voice IDs, pass a BV ID explicitly, for example:
+
+```bash
+go run ./examples/realtime -speaker BV700_streaming
+```
