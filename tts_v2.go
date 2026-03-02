@@ -88,6 +88,11 @@ func (s *TTSServiceV2) Stream(ctx context.Context, req *TTSV2Request) iter.Seq2[
 		resourceID := s.client.resolveResourceID(normalized.ResourceID, ResourceTTSV2)
 		auth.ApplyV2Headers(httpReq, s.client.authCredentials(), resourceID)
 
+		if isNilHTTPDoer(s.client.config.httpClient) {
+			yield(nil, newAPIError(CodeServerError, "http transport is nil"))
+			return
+		}
+
 		resp, err := s.client.config.httpClient.Do(httpReq)
 		if err != nil {
 			yield(nil, wrapError(err, "send tts stream request"))

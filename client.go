@@ -2,9 +2,11 @@ package doubaospeech
 
 import (
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/giztoy/doubao-speech-go/internal/auth"
+	"github.com/giztoy/doubao-speech-go/internal/transport"
 )
 
 const (
@@ -39,11 +41,14 @@ const (
 
 // Client is the SDK entry point.
 //
-// In this migration stage, ASR V2, TTS V2 WS, and Realtime are implemented.
+// In this migration stage, ASR V2, TTS V2 WS, Voice Clone, and Realtime are implemented.
 type Client struct {
 	// ASR V2 streaming recognition.
 	ASR   *ASRServiceV2
 	ASRV2 *ASRServiceV2
+
+	// Voice cloning.
+	VoiceClone *VoiceCloneService
 
 	// Realtime dialogue.
 	Realtime *RealtimeService
@@ -67,7 +72,7 @@ type clientConfig struct {
 
 	baseURL    string
 	wsURL      string
-	httpClient *http.Client
+	httpClient transport.HTTPDoer
 	timeout    time.Duration
 	userID     string
 }
@@ -89,15 +94,17 @@ func NewClient(appID string, opts ...Option) *Client {
 		opt(cfg)
 	}
 
-	if cfg.httpClient == nil {
+	if isNilHTTPDoer(cfg.httpClient) {
 		cfg.httpClient = &http.Client{Timeout: cfg.timeout}
 	}
 
 	c := &Client{config: cfg}
 	asrV2 := newASRServiceV2(c)
 	ttsV2 := newTTSServiceV2(c)
+	voiceClone := newVoiceCloneService(c)
 	c.ASR = asrV2
 	c.ASRV2 = asrV2
+	c.VoiceClone = voiceClone
 	c.Realtime = newRealtimeService(c)
 	c.TTS = ttsV2
 	c.TTSV2 = ttsV2
@@ -164,7 +171,34 @@ func WithWebSocketURL(url string) Option {
 // WithHTTPClient sets a custom HTTP client.
 func WithHTTPClient(client *http.Client) Option {
 	return func(c *clientConfig) {
+		if client == nil {
+			return
+		}
 		c.httpClient = client
+	}
+}
+
+// WithHTTPTransport sets a custom HTTP transport doer.
+func WithHTTPTransport(doer transport.HTTPDoer) Option {
+	return func(c *clientConfig) {
+		if isNilHTTPDoer(doer) {
+			return
+		}
+		c.httpClient = doer
+	}
+}
+
+func isNilHTTPDoer(doer transport.HTTPDoer) bool {
+	if doer == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(doer)
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return v.IsNil()
+	default:
+		return false
 	}
 }
 

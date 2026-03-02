@@ -18,8 +18,6 @@ import (
 //   - /api/v3 paths use V2 auth headers by default;
 //   - non-2xx responses are converted to *Error.
 func (c *Client) doJSONRequest(ctx context.Context, method, path string, body any, out any, resourceID string) error {
-	endpoint := strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(path, "/")
-
 	var bodyReader io.Reader
 	if body != nil {
 		payload, err := json.Marshal(body)
@@ -29,17 +27,65 @@ func (c *Client) doJSONRequest(ctx context.Context, method, path string, body an
 		bodyReader = bytes.NewReader(payload)
 	}
 
+	endpoint := c.buildEndpoint(path)
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, bodyReader)
 	if err != nil {
 		return wrapError(err, "create request")
 	}
 	req.Header.Set("Content-Type", "application/json")
+	c.applyAuthHeaders(req, path, resourceID)
 
+	return c.doRequest(req, out)
+}
+
+func (c *Client) doMultipartRequest(
+	ctx context.Context,
+	method string,
+	path string,
+	fields map[string]string,
+	files []MultipartFile,
+	out any,
+	resourceID string,
+) error {
+	contentType, body, err := buildMultipartBody(fields, files)
+	if err != nil {
+		return err
+	}
+
+	endpoint := c.buildEndpoint(path)
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, bytes.NewReader(body))
+	if err != nil {
+		return wrapError(err, "create request")
+	}
+	req.Header.Set("Content-Type", contentType)
+	c.applyAuthHeaders(req, path, resourceID)
+
+	return c.doRequest(req, out)
+}
+
+func (c *Client) buildEndpoint(path string) string {
+	return strings.TrimRight(c.config.baseURL, "/") + "/" + strings.TrimLeft(path, "/")
+}
+
+func (c *Client) applyAuthHeaders(req *http.Request, path string, resourceID string) {
 	creds := c.authCredentials()
 	if strings.HasPrefix(path, "/api/v3/") {
 		auth.ApplyV2Headers(req, creds, resourceID)
-	} else {
-		auth.ApplyV1Headers(req, creds)
+		return
+	}
+
+	auth.ApplyV1Headers(req, creds)
+
+	resourceID = strings.TrimSpace(resourceID)
+	if resourceID != "" {
+		req.Header.Set("Resource-Id", resourceID)
+		req.Header.Set("X-Api-Resource-Id", resourceID)
+	}
+}
+
+func (c *Client) doRequest(req *http.Request, out any) error {
+	if isNilHTTPDoer(c.config.httpClient) {
+		return newAPIError(CodeServerError, "http transport is nil")
 	}
 
 	resp, err := c.config.httpClient.Do(req)
