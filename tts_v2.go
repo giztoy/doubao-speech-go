@@ -12,8 +12,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/giztoy/doubao-speech-go/internal/auth"
-	"github.com/giztoy/doubao-speech-go/internal/util"
+	"github.com/GizClaw/doubao-speech-go/internal/auth"
+	"github.com/GizClaw/doubao-speech-go/internal/util"
 )
 
 const (

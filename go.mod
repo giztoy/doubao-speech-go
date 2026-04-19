@@ -1,4 +1,4 @@
-module github.com/giztoy/doubao-speech-go
+module github.com/GizClaw/doubao-speech-go
 
 go 1.26
 

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	doubaospeech "github.com/giztoy/doubao-speech-go"
+	doubaospeech "github.com/GizClaw/doubao-speech-go"
 )
 
 const (

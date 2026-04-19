@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/giztoy/doubao-speech-go/internal/protocol"
+	"github.com/GizClaw/doubao-speech-go/internal/protocol"
 	"github.com/gorilla/websocket"
 )
 

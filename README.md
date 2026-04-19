@@ -1,8 +1,8 @@
 # doubao-speech-go
 
-[![CI Pass](https://github.com/giztoy/doubao-speech-go/actions/workflows/ci.yml/badge.svg)](https://github.com/giztoy/doubao-speech-go/actions/workflows/ci.yml)
-[![Code Scan](https://github.com/giztoy/doubao-speech-go/actions/workflows/codeql.yml/badge.svg)](https://github.com/giztoy/doubao-speech-go/actions/workflows/codeql.yml)
-[![Go Pass A+](https://goreportcard.com/badge/github.com/giztoy/doubao-speech-go)](https://goreportcard.com/report/github.com/giztoy/doubao-speech-go)
+[![CI Pass](https://github.com/GizClaw/doubao-speech-go/actions/workflows/ci.yml/badge.svg)](https://github.com/GizClaw/doubao-speech-go/actions/workflows/ci.yml)
+[![Code Scan](https://github.com/GizClaw/doubao-speech-go/actions/workflows/codeql.yml/badge.svg)](https://github.com/GizClaw/doubao-speech-go/actions/workflows/codeql.yml)
+[![Go Pass A+](https://goreportcard.com/badge/github.com/GizClaw/doubao-speech-go)](https://goreportcard.com/report/github.com/GizClaw/doubao-speech-go)
 
 Go SDK for Doubao/Volc speech APIs.
 
@@ -26,7 +26,7 @@ git lfs pull
 ## Install
 
 ```bash
-go get github.com/giztoy/doubao-speech-go
+go get github.com/GizClaw/doubao-speech-go
 ```
 
 ## Quick Start

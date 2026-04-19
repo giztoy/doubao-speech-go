@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/giztoy/doubao-speech-go/internal/auth"
-	"github.com/giztoy/doubao-speech-go/internal/transport"
+	"github.com/GizClaw/doubao-speech-go/internal/auth"
+	"github.com/GizClaw/doubao-speech-go/internal/transport"
 )
 
 const (

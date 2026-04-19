@@ -1,10 +1,10 @@
 # AGENTS.md
 
-Agent guide for `github.com/giztoy/doubao-speech-go`.
+Agent guide for `github.com/GizClaw/doubao-speech-go`.
 
 ## 1) Repository profile
 - Language: Go only
-- Module: `github.com/giztoy/doubao-speech-go`
+- Module: `github.com/GizClaw/doubao-speech-go`
 - Go version: `1.26` (`go.mod`)
 - Build/test toolchain: `go build`, `go test`, `go vet`
 - Workflow: local development + direct merge

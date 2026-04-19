@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/giztoy/doubao-speech-go/internal/auth"
-	"github.com/giztoy/doubao-speech-go/internal/protocol"
-	"github.com/giztoy/doubao-speech-go/internal/transport"
-	"github.com/giztoy/doubao-speech-go/internal/util"
+	"github.com/GizClaw/doubao-speech-go/internal/auth"
+	"github.com/GizClaw/doubao-speech-go/internal/protocol"
+	"github.com/GizClaw/doubao-speech-go/internal/transport"
+	"github.com/GizClaw/doubao-speech-go/internal/util"
 	"github.com/gorilla/websocket"
 )
 
